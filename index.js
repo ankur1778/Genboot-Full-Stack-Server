@@ -3,15 +3,19 @@ const { connection } = require('./config/db')
 const bodyParser = require('body-parser')
 const AuthRouter = require('./Routes/AuthRouter')
 require('dotenv').config()
+const AdminRouter = require('./Routes/AdminRouter')
 const cors = require('cors')
 
 const port = process.env.port || 3100
 
 const app = express()
+
 app.use(cors())
 app.use(bodyParser.json())
 app.use(express.json())
+
 app.use("/auth", AuthRouter)
+app.use("/admin",AdminRouter)
 
 app.listen(port, async () => {
     try {

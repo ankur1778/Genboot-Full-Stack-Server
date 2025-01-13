@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 require('dotenv')
 
-
 const adminLogin = async (req, res) => {
     const { email, password } = req.body;
     try {

@@ -56,7 +56,7 @@ router.post("/", async (req, res) => {
     req.body;
   try {
     const category = await CategoryModel.findById(req.body.category);
-    if(!category) res.status(400).send("Invalid Category")
+    if (!category) res.status(400).send("Invalid Category");
     const foundCategory = await CategoryModel.findById(category);
     if (!foundCategory) {
       return res.status(400).json({ message: "Invalid Category" });
@@ -89,7 +89,7 @@ router.patch("/:id", async (req, res) => {
   const payload = req.body;
   try {
     const category = await CategoryModel.findById(req.body.category);
-    if(!category) res.status(400).send("Invalid Category")
+    if (!category) res.status(400).send("Invalid Category");
     const token = req.headers.authorization;
     jwt.verify(token, JWT_SECRET, async (err, decoded) => {
       if (decoded) {
@@ -123,6 +123,16 @@ router.delete("/:id", async (req, res) => {
   } catch (err) {
     res.status(404).send({ success: false, error: err.message });
   }
+});
+
+router.get("/get/count", async (req, res) => {
+  const productCount = await ProductModel.countDocuments();
+  if (!productCount) {
+    res.status(500).json({ success: false });
+  }
+  res.send({
+    productCount: productCount,
+  });
 });
 
 module.exports = router;

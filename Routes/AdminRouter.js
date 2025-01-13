@@ -2,22 +2,20 @@ const { UserModel } = require("../models/Users.model");
 const express = require("express");
 const router = express.Router();
 const cors = require("cors");
-const jwt = require("jsonwebtoken");
-const adminAuth = require("../MiddleWares/AdminValidation");
-const JWT_SECRET = process.env.JWT_SECRET;
+const adminAuth = require("../middlewares/AdminValidation");
 
 router.use(cors());
 
 // Get all users (Admin only)
 router.get("/users", adminAuth, async (req, res) => {
   try {
-    const query = req.query;
-    const users = await UserModel.find(query);
-    res.status(200).send(users);
+    const users = await UserModel.find(req.query);
+    res.status(200).json(users);
   } catch (error) {
-    res.status(500).send({ msg: "Cannot get the users", error: error.message });
+    res.status(500).json({ msg: "Cannot get the users", error: error.message });
   }
 });
+
 
 // Update a user
 router.patch("/users/update/:id", adminAuth, async (req, res) => {

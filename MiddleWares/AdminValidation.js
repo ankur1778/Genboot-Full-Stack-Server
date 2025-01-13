@@ -7,12 +7,10 @@ const adminAuth = (req, res, next) => {
             return res.status(401).json({ message: "Unauthorized access" });
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log(process.env.JWT_SECRET);
-        
-        if (decoded.roleId !== "1") { 
-            return res.status(403).json({ message: "Forbidden: Admin access only" });
-        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);   
+        // if (decoded.roleId !== "1") { 
+        //     return res.status(403).json({ message: "Forbidden: Admin access only" });
+        // }
         req.user = decoded;
         next();
     } catch (error) {

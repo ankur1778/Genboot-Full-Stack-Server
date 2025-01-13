@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
     jwt.verify(token, JWT_SECRET, async (err, decoded) => {
       if (decoded) {
         const categories = await CategoryModel.find(query);
-        res.send([categories]);
+        res.send(categories);
       } else {
         res.send({ msg: "Some thing went wrong", error: err.message });
       }

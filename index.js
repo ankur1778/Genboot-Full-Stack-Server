@@ -12,7 +12,7 @@ const port = process.env.port || 3100;
 
 const app = express();
 
-app.use(cors());
+app.use(cors({origin:"*"}));
 app.use(bodyParser.json());
 app.use(express.json());
 
@@ -21,7 +21,7 @@ app.use("/admin", AdminRouter);
 app.use("/products", ProductRouter);
 app.use("/categories", CategoryRouter);
 
-app.listen(port, async () => {
+app.listen(port, '0.0.0.0', async () => {
   try {
     await connection;
     console.log("Connected to DB");

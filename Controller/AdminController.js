@@ -1,4 +1,4 @@
-const UserModel = require('../models/Users.model');
+const {UserModel} = require('../models/Users.model');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 require('dotenv')
@@ -35,6 +35,7 @@ const adminLogin = async (req, res) => {
         res.status(500).json({
             message: "Login Unsuccessful",
             success: false,
+            error:error.message
         });
     }
 };

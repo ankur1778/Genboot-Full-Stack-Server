@@ -9,12 +9,12 @@ router.get("/", async (req, res) => {
   let query = req.query;
   try {
     const token = req.headers.authorization;
-    jwt.verify(token, `${JWT_SECRET}`, async (err, decoded) => {
+    jwt.verify(token, JWT_SECRET, async (err, decoded) => {
       if (decoded) {
-        const products = await ProductModel.find(query).select(
-          " -countInStock"
-        ).populate('category');
-        res.send([products]);
+        const products = await ProductModel.find(query)
+          .select("-_id -countInStock ")
+          .populate("category");
+        res.send(products);
       } else {
         res.send({ msg: "Some thing went wrong", error: err.message });
       }
@@ -29,7 +29,9 @@ router.get("/:id", async (req, res) => {
     const token = req.headers.authorization;
     jwt.verify(token, JWT_SECRET, async (err, decoded) => {
       if (decoded) {
-        const product = await ProductModel.findById(req.params.id).populate('category');
+        const product = await ProductModel.findById(req.params.id).populate(
+          "category"
+        );
         if (!product) {
           return res.status(404).json({
             message: "The product with the given ID is not found",
@@ -42,7 +44,9 @@ router.get("/:id", async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).send({ message: "An error occurred", error: error.message });
+    res
+      .status(500)
+      .send({ message: "An error occurred", error: error.message });
   }
 });
 
@@ -77,4 +81,48 @@ router.post("/", async (req, res) => {
       .json({ message: "An error occurred", error: error.message });
   }
 });
+
+router.patch("/:id", async (req, res) => {
+  const ID = req.params.id;
+  const payload = req.body;
+  try {
+    const token = req.headers.authorization;
+    jwt.verify(token, JWT_SECRET, async (err, decoded) => {
+      if (decoded) {
+        await ProductModel.findByIdAndUpdate({ _id: ID }, payload);
+        res
+          .status(200)
+          .json({ message: "Updated the product", success: true });
+      } else {
+        res
+          .status(404)
+          .json({ msg: "Some thing went wrong", error: err.message });
+      }
+    });
+  } catch (err) {
+    res.status(404).send({ success: false, error: err.message });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  const ID = req.params.id;
+  try {
+    const token = req.headers.authorization;
+    jwt.verify(token, JWT_SECRET, async (err, decoded) => {
+      if (decoded) {
+        await ProductModel.findByIdAndDelete({ _id: ID });
+        res
+          .status(200)
+          .json({ message: "Deleted the product", success: true });
+      } else {
+        res
+          .status(404)
+          .json({ msg: "Some thing went wrong", error: err.message });
+      }
+    });
+  } catch (err) {
+    res.status(404).send({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

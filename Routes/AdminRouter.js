@@ -10,22 +10,21 @@ router.use(cors());
 router.get("/users", async (req, res) => {
   let query = req.query;
   try {
-    const users = await UserModel.find(query);
-    res.send(users);
-    // const token = req.headers.authorization;
-    // jwt.verify(token, JWT_SECRET, async (err, decoded) => {
-    //   if (err) {
-    //     return res
-    //       .status(401)
-    //       .send({ msg: "Invalid token", error: err.message });
-    //   }
-    //   // Proceed if decoded is valid
-    //   const users = await UserModel.find(query);
-    //   res.send(users);
-    // });
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).send({ msg: "Authorization token is missing" });
+    }
+    jwt.verify(token, "Mohit Raj Singh", async (err, decoded) => {
+      if (err) {
+        return res
+          .status(401)
+          .send({ msg: "Invalid token", error: err.message });
+      }
+      const users = await UserModel.find(query);
+      res.send(users);
+    });
   } catch (error) {
-    res.send({ msg: "Cannot get the users" });
-    console.log(error);
+    res.status(500).send({ msg: "Cannot get the users", error: error.message });
   }
 });
 

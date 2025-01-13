@@ -12,6 +12,7 @@ router.get("/", async (req, res) => {
     jwt.verify(token, JWT_SECRET, async (err, decoded) => {
       if (decoded) {
         const products = await ProductModel.find(query)
+          .populate("category")
           .select("-_id -countInStock ")
           .populate("category");
         res.send(products);
@@ -53,8 +54,9 @@ router.get("/:id", async (req, res) => {
 router.post("/", async (req, res) => {
   const { id, name, description, price, category, countInStock, rating } =
     req.body;
-
   try {
+    const category = await CategoryModel.findById(req.body.category);
+    if(!category) res.status(400).send("Invalid Category")
     const foundCategory = await CategoryModel.findById(category);
     if (!foundCategory) {
       return res.status(400).json({ message: "Invalid Category" });
@@ -86,13 +88,13 @@ router.patch("/:id", async (req, res) => {
   const ID = req.params.id;
   const payload = req.body;
   try {
+    const category = await CategoryModel.findById(req.body.category);
+    if(!category) res.status(400).send("Invalid Category")
     const token = req.headers.authorization;
     jwt.verify(token, JWT_SECRET, async (err, decoded) => {
       if (decoded) {
         await ProductModel.findByIdAndUpdate({ _id: ID }, payload);
-        res
-          .status(200)
-          .json({ message: "Updated the product", success: true });
+        res.status(200).json({ message: "Updated the product", success: true });
       } else {
         res
           .status(404)
@@ -111,9 +113,7 @@ router.delete("/:id", async (req, res) => {
     jwt.verify(token, JWT_SECRET, async (err, decoded) => {
       if (decoded) {
         await ProductModel.findByIdAndDelete({ _id: ID });
-        res
-          .status(200)
-          .json({ message: "Deleted the product", success: true });
+        res.status(200).json({ message: "Deleted the product", success: true });
       } else {
         res
           .status(404)

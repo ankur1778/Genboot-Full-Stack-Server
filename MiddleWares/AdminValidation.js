@@ -10,7 +10,7 @@ const adminAuth = (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         console.log(process.env.JWT_SECRET);
         
-        if (decoded.roleId !== "1") { 
+        if (decoded.roleId !== process.env.ROLE_ADMIN) { 
             return res.status(403).json({ message: "Forbidden: Admin access only" });
         }
         req.user = decoded;

@@ -16,7 +16,7 @@ const adminLogin = async (req, res) => {
             return res.status(400).json({ message: "Wrong Credentials", success: false });
         }
         const roleId = await UserModel.findOne({roleId})
-        if(!roleId === "1"){
+        if(!roleId === process.env.ROLE_ADMIN){
             res.send("You are not allowed")
         }
         const token = jwt.sign(

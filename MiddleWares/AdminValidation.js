@@ -2,16 +2,14 @@ const jwt = require("jsonwebtoken");
 
 const adminAuth = (req, res, next) => {
   try {
-    const token = req.headers.authorization;
+    const token = req.headers.authorization?.split(" ")[1];
     const roleId = req.headers.roleid;
 
-    if (!token || !roleId) {
-      return res
-        .status(401)
-        .json({ msg: "Authorization token or roleId is missing" });
+    if (!token) {
+      return res.status(401).json({ msg: "Authorization token is missing" });
     }
 
-    if (roleId !== "1") {
+    if (!roleId || roleId !== process.env.ROLE_ADMIN) {
       return res
         .status(403)
         .json({ msg: "Access denied: You are not an admin" });

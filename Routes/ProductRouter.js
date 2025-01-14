@@ -79,8 +79,6 @@ router.post("/", adminAuth, uploadOptions.single("image"), async (req, res) => {
     rating,
   } = req.body;
   try {
-    const category = await CategoryModel.findById(req.body.category);
-    if (!category) res.status(400).send("Invalid Category");
     const foundCategory = await CategoryModel.findById(category);
     if (!foundCategory) {
       return res.status(400).json({ message: "Invalid Category" });

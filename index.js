@@ -15,7 +15,7 @@ const app = express();
 app.use(cors({origin:"*"}));
 app.use(bodyParser.json());
 app.use(express.json());
-app.use('/public/uploads', express.static(__dirname + 'public/uploads'))
+app.use('/public/uploads', express.static(__dirname + '/public/uploads'))
 app.use("/auth", AuthRouter);
 app.use("/admin", AdminRouter);
 app.use("/products", ProductRouter);

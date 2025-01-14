@@ -8,12 +8,10 @@ const signup = async (req, res) => {
     const { name, email, password, phNo, roleId } = req.body;
     const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
-      return res
-        .status(409)
-        .json({
-          message: "User already exists with this email",
-          success: false,
-        });
+      return res.status(409).json({
+        message: "User already exists with this email",
+        success: false,
+      });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new UserModel({

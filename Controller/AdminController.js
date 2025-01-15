@@ -33,7 +33,7 @@ const adminLogin = async (req, res) => {
     );
 
     res.json({
-      message: "Login Successfull",
+      message: "Login Successfully",
       success: true,
       token,
       roleId: user.roleId,
@@ -41,7 +41,7 @@ const adminLogin = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      message: "Login Unsuccessfull",
+      message: "Login Unsuccessfully",
       success: false,
       error: error.message,
     });

@@ -129,17 +129,8 @@ router.patch("/:id", adminAuth, async (req, res) => {
 router.delete("/:id", adminAuth, async (req, res) => {
   const ID = req.params.id;
   try {
-    const token = req.headers.authorization;
-    jwt.verify(token, JWT_SECRET, async (err, decoded) => {
-      if (decoded) {
-        await ProductModel.findByIdAndDelete({ _id: ID });
-        res.status(200).json({ message: "Deleted the product", success: true });
-      } else {
-        res
-          .status(404)
-          .json({ msg: "Some thing went wrong", error: err.message });
-      }
-    });
+    await ProductModel.findByIdAndDelete({ _id: ID });
+    res.status(200).json({ message: "Deleted the product", success: true });
   } catch (err) {
     res.status(404).send({ success: false, error: err.message });
   }

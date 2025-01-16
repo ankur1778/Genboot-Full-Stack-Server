@@ -7,7 +7,7 @@ const adminAuth = require("../middlewares/AdminValidation");
 router.use(cors());
 
 // Get all users (Admin only)
-router.get("/users",adminAuth, async (req, res) => {
+router.get("/users", adminAuth, async (req, res) => {
   try {
     const users = await UserModel.find(req.query);
     res.status(200).json(users);
@@ -16,9 +16,8 @@ router.get("/users",adminAuth, async (req, res) => {
   }
 });
 
-
 // Update a user
-router.patch("/users/update/:id", adminAuth, async (req, res) => {
+router.put("/users/update/:id", adminAuth, async (req, res) => {
   const { id } = req.params;
   const payload = req.body;
 

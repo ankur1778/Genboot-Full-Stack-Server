@@ -9,10 +9,14 @@ router.use(cors());
 // Get all users (Admin only)
 router.get("/users", adminAuth, async (req, res) => {
   try {
+    let filter = {};
+    if (req.query.name) {
+      filter.name = { $regex: req.query.name, $options: "i" };
+    }
     const limit = Number(req.query.limit);
     const page = Number(req.query.page);
     let offset = (page - 1) * limit;
-    const users = await UserModel.find().limit(limit).skip(offset);
+    const users = await UserModel.find(filter).limit(limit).skip(offset);
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ msg: "Cannot get the users", error: error.message });

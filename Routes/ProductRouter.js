@@ -32,15 +32,16 @@ const uploadOptions = multer({ storage: storage });
 
 //Getting the products
 router.get("/", verifyToken, async (req, res) => {
-  const limit = Number(req.query.limit);
-  const page = Number(req.query.page);
+  const limit = Number(req.query.limit) || 10;
+  const page = Number(req.query.page) || 1;
   let offset = (page - 1) * limit;
   try {
     let filter = {};
     if (req.query.categories) {
-      filter = {
-        category: req.query.categories,
-      };
+      filter.category = req.query.categories;
+    }
+    if (req.query.name) {
+      filter.name = { $regex: req.query.name, $options: "i" }; 
     }
 
     const products = await ProductModel.find(filter)

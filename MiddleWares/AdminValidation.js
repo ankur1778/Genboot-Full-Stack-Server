@@ -1,24 +1,34 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 const adminAuth = (req, res, next) => {
-    try {
-        const token = req.headers.authorization;
-        if (!token) {
-            return res.status(401).json({ message: "Unauthorized access" });
-        }
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    const roleId = req.headers.roleid;
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log(process.env.JWT_SECRET);
-        
-        if (decoded.roleId !== "1") { 
-            return res.status(403).json({ message: "Forbidden: Admin access only" });
-        }
-        req.user = decoded;
-        next();
-    } catch (error) {
-        console.error(error);
-        res.status(403).json({ message: "Invalid token or access denied" });
+    if (!token) {
+      return res.status(401).json({ msg: "Authorization token is missing" });
     }
+
+    if (!roleId || roleId !== process.env.ROLE_ADMIN) {
+      return res
+        .status(403)
+        .json({ msg: "Access denied: You are not an admin" });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return res
+          .status(401)
+          .json({ msg: "Invalid token", error: err.message });
+      }
+      req.user = decoded;
+      next();
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ msg: "Internal server error", error: error.message });
+  }
 };
 
-module.exports = adminAuth
+module.exports = adminAuth;

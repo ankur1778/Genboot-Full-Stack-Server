@@ -1,10 +1,8 @@
 const { CategoryModel } = require("../models/Category.model");
 const express = require("express");
 const router = express.Router();
-const jwt = require("jsonwebtoken");
-const verifyToken = require("../MiddleWares/verifyToken");
+const verifyToken = require("../middlewares/verifyToken");
 const adminAuth = require("../middlewares/AdminValidation");
-const JWT_SECRET = process.env.JWT_SECRET;
 
 router.get("/", verifyToken, async (req, res) => {
   let query = req.query;

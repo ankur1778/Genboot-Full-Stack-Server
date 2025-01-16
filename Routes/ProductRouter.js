@@ -1,12 +1,10 @@
 const { ProductModel } = require("../models/Product.model");
 const express = require("express");
 const router = express.Router();
-const jwt = require("jsonwebtoken");
-const JWT_SECRET = process.env.JWT_SECRET;
 const { CategoryModel } = require("../models/Category.model");
-const verifyToken = require("../MiddleWares/verifyToken");
 const adminAuth = require("../middlewares/AdminValidation");
 const multer = require("multer");
+const verifyToken = require("../middlewares/verifyToken");
 
 const FILE_TYPE_MAP = {
   "image/png": "png",
@@ -32,15 +30,25 @@ const storage = multer.diskStorage({
 
 const uploadOptions = multer({ storage: storage });
 
+//Getting the products
 router.get("/", verifyToken, async (req, res) => {
+  const limit = Number(req.query.limit);
+  const page = Number(req.query.page);
+  let offset = (page - 1) * limit;
   try {
     let filter = {};
     if (req.query.categories) {
-      filter = { category: req.query.categories.split(",") };
+      filter = {
+        category: req.query.categories,
+      };
     }
+
     const products = await ProductModel.find(filter)
       .select("-_id -countInStock ")
-      .populate("category");
+      .populate("category")
+      .limit(limit)
+      .skip(offset)
+      .sort("id");
     res.send(products);
   } catch (error) {
     res.send({ msg: "Cannot get the products" });

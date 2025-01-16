@@ -12,7 +12,6 @@ router.get("/", verifyToken, async (req, res) => {
     const orderList = await OrderModel.find()
       .populate("user", "name")
       .sort({ dateOrdered: -1 })
-      .lean();
 
     if (!orderList) return res.status(500).json({ success: false });
 

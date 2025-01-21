@@ -37,19 +37,19 @@ router.get("/", verifyToken, async (req, res) => {
   let offset = (page - 1) * limit;
   try {
     let filter = {};
-    if (req.query.categories) {
-      filter.category = req.query.categories;
+    let { categories, name, sort } = req.query;
+    if (categories) {
+      filter.category = categories;
     }
-    if (req.query.name) {
-      filter.name = { $regex: req.query.name, $options: "i" }; 
+    if (name) {
+      filter.name = name;
     }
-
     const products = await ProductModel.find(filter)
       .select("-_id -countInStock ")
       .populate("category")
       .limit(limit)
       .skip(offset)
-      .sort("id");
+      .sort(sort);
     res.send(products);
   } catch (error) {
     res.send({ msg: "Cannot get the products" });

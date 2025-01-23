@@ -32,8 +32,8 @@ const uploadOptions = multer({ storage: storage });
 
 //Getting the products
 router.get("/", verifyToken, async (req, res) => {
-  const limit = Number(req.query.limit) || 10;
-  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit);
+  const page = Number(req.query.page);
   let offset = (page - 1) * limit;
   try {
     let filter = {};
@@ -44,13 +44,21 @@ router.get("/", verifyToken, async (req, res) => {
     if (name) {
       filter.name = name;
     }
-    const products = await ProductModel.find(filter)
+    let products = await ProductModel.find(filter)
       .select("-_id -countInStock ")
       .populate("category")
       .limit(limit)
       .skip(offset)
       .sort(sort);
-    res.send(products);
+    const shuffle = (array) => {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    };
+    const randomProducts = shuffle(products);
+    res.send(randomProducts);
   } catch (error) {
     res.send({ msg: "Cannot get the products" });
     console.log(error);

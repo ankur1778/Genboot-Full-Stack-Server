@@ -76,17 +76,6 @@ router.post("/", adminAuth, async (req, res) => {
   }
 });
 
-// router.patch("/:id", adminAuth, async (req, res) => {
-//   const ID = req.params.id;
-//   const payload = req.body;
-//   try {
-//     await CategoryModel.findByIdAndUpdate({ _id: ID }, payload);
-//     res.status(200).json({ message: "Updated the Category", success: true });
-//   } catch (err) {
-//     res.status(404).send({ success: false, error: err.message });
-//   }
-// });
-
 router.patch(
   "/:id",
   adminAuth,

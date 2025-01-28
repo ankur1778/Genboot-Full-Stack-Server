@@ -5,27 +5,6 @@ const { CartItemModel } = require("../models/Cart-Item");
 
 const addItemToCart = async (req, res) => {
   try {
-    const userId = req.params.userId;
-    const { product } = req.body;
-
-    // Validate userId and product
-    if (!userId || !isValidObjectId(userId)) {
-      return res
-        .status(400)
-        .send({ status: false, message: "Invalid user ID" });
-    }
-
-    const user = await UserModel.exists({ _id: userId });
-    if (!user) {
-      return res.status(404).send({ status: false, message: "User not found" });
-    }
-
-    if (!product || !isValidObjectId(product)) {
-      return res
-        .status(400)
-        .send({ status: false, message: "Invalid product ID" });
-    }
-
     // Check if the user already has a cart
     let cart = await CartModel.findOne({ user: userId }).populate("products");
 

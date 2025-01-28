@@ -11,7 +11,7 @@ router.get("/", verifyToken, async (req, res) => {
   try {
     const orderList = await OrderModel.find()
       .populate("user", "name")
-      .sort({ dateOrdered: -1 })
+      .sort({ dateOrdered: -1 });
 
     if (!orderList) return res.status(500).json({ success: false });
 
@@ -150,7 +150,7 @@ router.delete("/:id", verifyToken, async (req, res) => {
 });
 
 // Get orders for a specific user
-router.get("/get/userorders/:userid", async (req, res) => {
+router.get("/get/userorders/:userid", verifyToken, async (req, res) => {
   try {
     const userOrderList = await OrderModel.find({ user: req.params.userid })
       .populate({

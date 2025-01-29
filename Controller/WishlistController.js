@@ -1,6 +1,7 @@
 const { isValidObjectId } = require("mongoose");
 const { WishListModel } = require("../models/WishListModel");
 const { WishListItemModel } = require("../models/WishList-Item");
+const { ProductValidation, WishListMessage, UserValidation } = require("../lib/statusMessage");
 
 const addItemToWishList = async (req, res) => {
   try {
@@ -20,7 +21,7 @@ const addItemToWishList = async (req, res) => {
     if (!product || !isValidObjectId(product)) {
       return res
         .status(400)
-        .send({ status: false, message: "Invalid product ID" });
+        .send({ status: false, message: ProductValidation.INVALID_PRODUCT });
     }
 
     // Create a new WishListItemModel for the product
@@ -34,16 +35,16 @@ const addItemToWishList = async (req, res) => {
       await wishlist.save();
       return res
         .status(200)
-        .send({ status: true, message: "Item added to wishlist", wishlist });
+        .send({ status: true, message: WishListMessage.ADDED, wishlist });
     }
 
     return res
       .status(400)
-      .send({ status: false, message: "Item already exists in wishlist" });
+      .send({ status: false, message: WishListMessage.EXIST });
   } catch (error) {
     res
       .status(500)
-      .send({ status: false, message: "Server error", error: error.message });
+      .send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error: error.message });
   }
 };
 
@@ -56,7 +57,7 @@ const getWishList = async (req, res) => {
     if (!userId || !isValidObjectId(userId)) {
       return res
         .status(400)
-        .send({ status: false, message: "Invalid user ID" });
+        .send({ status: false, message: UserValidation.INVALID_USERID });
     }
 
     // Find the wishlist and populate the products
@@ -65,14 +66,14 @@ const getWishList = async (req, res) => {
     if (!wishlist) {
       return res
         .status(404)
-        .send({ status: false, message: "Wishlist not found for this user" });
+        .send({ status: false, message: WishListMessage.NOT_FOUND });
     }
 
     return res.status(200).send({ status: true, wishlist });
   } catch (error) {
     return res
       .status(500)
-      .send({ status: false, message: "Server error", error: error.message });
+      .send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error: error.message });
   }
 };
 
@@ -86,12 +87,12 @@ const removeItem = async (req, res) => {
     if (!userId || !isValidObjectId(userId)) {
       return res
         .status(400)
-        .send({ status: false, message: "Invalid user ID" });
+        .send({ status: false, message: UserValidation.INVALID_USERID });
     }
     if (!product || !isValidObjectId(product)) {
       return res
         .status(400)
-        .send({ status: false, message: "Invalid product ID" });
+        .send({ status: false, message: ProductValidation.INVALID_PRODUCT });
     }
 
     // Find the user's wishlist
@@ -99,7 +100,7 @@ const removeItem = async (req, res) => {
     if (!wishlist) {
       return res
         .status(404)
-        .send({ status: false, message: "Wishlist not found for this user" });
+        .send({ status: false, message: WishListMessage.NOT_FOUND });
     }
 
     // Remove the product from the wishlist
@@ -109,7 +110,7 @@ const removeItem = async (req, res) => {
     if (productIndex === -1) {
       return res
         .status(404)
-        .send({ status: false, message: "Product not found in wishlist" });
+        .send({ status: false, message: WishListMessage.EMPTY });
     }
 
     wishlist.products.splice(productIndex, 1); // Remove product
@@ -117,13 +118,13 @@ const removeItem = async (req, res) => {
 
     return res.status(200).send({
       status: true,
-      message: "Product removed successfully",
+      message: WishListMessage.REMOVED,
       updatedWishList: wishlist,
     });
   } catch (error) {
     return res
       .status(500)
-      .send({ status: false, message: "Server error", error: error.message });
+      .send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error: error.message });
   }
 };
 

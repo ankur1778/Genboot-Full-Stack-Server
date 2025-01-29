@@ -1,22 +1,18 @@
+const { OrderMessage } = require("../lib/statusMessage");
 const { OrderItemModel } = require("../models/Order-Item");
 const { OrderModel } = require("../models/Orders.model");
 const ADMIN = process.env.ROLE_ADMIN;
 
 // Get all orders
 const getAllOrders = async (req, res) => {
-  const roleId = req.roleId;
   try {
-    if (roleId === ADMIN) {
-      const orderList = await OrderModel.find()
-        .populate("user", "name")
-        .sort({ dateOrdered: -1 });
+    const orderList = await OrderModel.find()
+      .populate("user", "name")
+      .sort({ dateOrdered: -1 });
 
-      if (!orderList) return res.status(500).json({ success: false });
+    if (!orderList) return res.status(500).json({ success: false });
 
-      res.status(200).json(orderList);
-    } else {
-      res.send("You are not Authorized");
-    }
+    res.status(200).json(orderList);
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -24,28 +20,23 @@ const getAllOrders = async (req, res) => {
 
 // Get a single order
 const getSingleOrder = async (req, res) => {
-  const roleId = req.roleId;
   try {
-    if (roleId === ADMIN) {
-      const order = await OrderModel.findById(req.params.id)
-        .populate("user", "name")
-        .populate({
-          path: "orderItems",
-          populate: {
-            path: "product",
-            populate: "category",
-          },
-        });
+    const order = await OrderModel.findById(req.params.id)
+      .populate("user", "name")
+      .populate({
+        path: "orderItems",
+        populate: {
+          path: "product",
+          populate: "category",
+        },
+      });
 
-      if (!order)
-        return res
-          .status(404)
-          .json({ success: false, message: "Order not found" });
+    if (!order)
+      return res
+        .status(404)
+        .json({ success: false, message: OrderMessage.NOT_FOUND });
 
-      res.status(200).json(order);
-    } else {
-      res.send("You are not authorized");
-    }
+    res.status(200).json(order);
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -105,33 +96,28 @@ const postOrder = async (req, res) => {
 //Update Status of order
 const updateStatus = async (req, res) => {
   const { status } = req.body;
-  const roleId = req.roleId;
 
   if (!["Pending", "Shipped", "Delivered", "Cancelled"].includes(status)) {
     return res
       .status(400)
-      .json({ success: false, message: "Invalid status value" });
+      .json({ success: false, message: OrderMessage.INVALID_STATUS });
   }
 
   try {
-    if (roleId === ADMIN) {
-      const order = await OrderModel.findByIdAndUpdate(
-        req.params.id,
-        { status },
-        { new: true }
-      );
+    const order = await OrderModel.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
 
-      if (!order)
-        return res
-          .status(404)
-          .json({ success: false, message: "Order not found" });
+    if (!order)
+      return res
+        .status(404)
+        .json({ success: false, message: OrderMessage.NOT_FOUND });
 
-      res
-        .status(200)
-        .json({ success: true, message: "Order status updated", order });
-    } else {
-      res.send("You are not authorized");
-    }
+    res
+      .status(200)
+      .json({ success: true, message: OrderMessage.STATUS_UPDATED, order });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -145,7 +131,7 @@ const deleteOrder = async (req, res) => {
     if (!order)
       return res
         .status(404)
-        .json({ success: false, message: "Order not found" });
+        .json({ success: false, message: OrderMessage.NOT_FOUND });
 
     await Promise.all(
       order.orderItems.map((orderItemId) =>
@@ -155,7 +141,7 @@ const deleteOrder = async (req, res) => {
 
     res
       .status(200)
-      .json({ success: true, message: "Order deleted successfully" });
+      .json({ success: true, message: OrderMessage.DELETED });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -178,7 +164,7 @@ const userOrder = async (req, res) => {
     if (!userOrderList.length)
       return res
         .status(404)
-        .json({ success: false, message: "No orders found for this user" });
+        .json({ success: false, message: OrderMessage.NOT_FOUND });
 
     res.status(200).json(userOrderList);
   } catch (error) {

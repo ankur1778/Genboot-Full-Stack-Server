@@ -1,6 +1,7 @@
 const { UserModel } = require("../models/Users.model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const { AuthValidation, ServerErrorMessage } = require("../lib/statusMessage");
 require("dotenv");
 
 const signup = async (req, res) => {
@@ -9,7 +10,7 @@ const signup = async (req, res) => {
     const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
       return res.status(409).json({
-        message: "User already exists with this email",
+        message: AuthValidation.EXIST,
         success: false,
       });
     }
@@ -25,7 +26,7 @@ const signup = async (req, res) => {
     await newUser.save();
 
     res.status(201).json({
-      message: "User Registered Successfully",
+      message: AuthValidation.REGISTERED,
       success: true,
       user: {
         id: newUser._id,
@@ -37,7 +38,7 @@ const signup = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({
-      message: "Internal Server Error",
+      message: ServerErrorMessage.SERVER_ERROR,
       success: false,
     });
   }
@@ -50,13 +51,13 @@ const login = async (req, res) => {
     if (!user) {
       return res
         .status(400)
-        .json({ message: "Wrong Credentials", success: false });
+        .json({ message: AuthValidation.WRONG_CREDS, success: false });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res
         .status(400)
-        .json({ message: "Wrong Credentials", success: false });
+        .json({ message: AuthValidation.WRONG_CREDS, success: false });
     }
     const token = jwt.sign(
       { userId: user._id, roleId: user.roleId, project: "e-commerce" },
@@ -64,14 +65,14 @@ const login = async (req, res) => {
     );
 
     res.json({
-      message: "Login Successfully",
+      message: AuthValidation.LOGGED,
       success: true,
       token,
       roleId: user.roleId,
     });
   } catch (error) {
     res.status(500).json({
-      message: "Login Unsuccessfully",
+      message: AuthValidation.FAILED,
       success: false,
     });
   }

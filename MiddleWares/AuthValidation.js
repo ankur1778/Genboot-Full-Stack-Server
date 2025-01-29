@@ -1,4 +1,5 @@
-const Joi = require('joi')
+const Joi = require('joi');
+const { AuthValidation } = require('../lib/statusMessage');
 
 const signupValidation = (req, res, next) => {
     const schema = Joi.object({
@@ -9,7 +10,7 @@ const signupValidation = (req, res, next) => {
     }).unknown()
     const { error } = schema.validate(req.body);
     if (error) {
-        return res.status(400).json({ "msg": "Bad Request", error })
+        return res.status(400).json({ "msg": AuthValidation.INVALID, error })
     }
     next()
 }
@@ -21,7 +22,7 @@ const loginValidation = (req, res, next) => {
     })
     const { error } = schema.validate(req.body);
     if (error) {
-        return res.status(400).json({ "msg": "Bad Request", error })
+        return res.status(400).json({ "msg": AuthValidation.INVALID, error })
     }
     next()
 }

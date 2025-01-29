@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { TokenMessage } = require("../lib/statusMessage");
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const userDetails = (req, res, next) => {
@@ -8,13 +9,13 @@ const userDetails = (req, res, next) => {
   if (!token) {
     return res
       .status(403)
-      .json({ message: "No token provided, authorization denied." });
+      .json({ message: TokenMessage.MISSING_TOKEN });
   }
 
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(401).json({
-        message: "Invalid token, authorization denied.",
+        message: TokenMessage.INVALID,
         error: err.message,
       });
     }

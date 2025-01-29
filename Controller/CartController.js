@@ -1,6 +1,7 @@
 const { isValidObjectId } = require("mongoose");
 const { CartModel } = require("../models/CartModel");
 const { CartItemModel } = require("../models/Cart-Item");
+const { ProductValidation, CartMessages } = require("../lib/statusMessage");
 
 const addItemToCart = async (req, res) => {
   try {
@@ -10,7 +11,7 @@ const addItemToCart = async (req, res) => {
     if (!product || !isValidObjectId(product)) {
       return res
         .status(400)
-        .send({ status: false, message: "Invalid product ID" });
+        .send({ status: false, message: ProductValidation.INVALID_PRODUCT });
     }
 
     // Find or create a cart and add/update product
@@ -43,7 +44,7 @@ const addItemToCart = async (req, res) => {
 
     res.status(200).send({ status: true, cart: updatedCart });
   } catch (error) {
-    res.status(500).send({ status: false, message: "Server error", error });
+    res.status(500).send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error });
   }
 };
 
@@ -57,12 +58,12 @@ const getCart = async (req, res) => {
     });
 
     if (!cart) {
-      return res.status(404).send({ status: false, message: "Cart not found" });
+      return res.status(404).send({ status: false, message: CartMessages.NOT_FOUND });
     }
 
     res.status(200).send({ status: true, cart });
   } catch (error) {
-    res.status(500).send({ status: false, message: "Server error", error });
+    res.status(500).send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error });
   }
 };
 
@@ -74,13 +75,13 @@ const decreaseQuantity = async (req, res) => {
     if (!productId || !isValidObjectId(productId)) {
       return res
         .status(400)
-        .send({ status: false, message: "Invalid product ID" });
+        .send({ status: false, message: ProductValidation.INVALID_PRODUCT });
     }
 
     const cart = await CartModel.findOne({ user: userId }).populate("products");
 
     if (!cart) {
-      return res.status(404).send({ status: false, message: "Cart not found" });
+      return res.status(404).send({ status: false, message: CartMessages.NOT_FOUND });
     }
 
     const cartItem = cart.products.find(
@@ -90,7 +91,7 @@ const decreaseQuantity = async (req, res) => {
     if (!cartItem) {
       return res
         .status(400)
-        .send({ status: false, message: "Item not in cart" });
+        .send({ status: false, message: CartMessages.EMPTY });
     }
 
     if (cartItem.quantity > 1) {
@@ -111,7 +112,7 @@ const decreaseQuantity = async (req, res) => {
 
     res.status(200).send({ status: true, cart: updatedCart });
   } catch (error) {
-    res.status(500).send({ status: false, message: "Server error", error });
+    res.status(500).send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error });
   }
 };
 
@@ -123,7 +124,7 @@ const removeItem = async (req, res) => {
     if (!productId || !isValidObjectId(productId)) {
       return res
         .status(400)
-        .send({ status: false, message: "Invalid product ID" });
+        .send({ status: false, message: ProductValidation.INVALID_PRODUCT });
     }
 
     const cart = await CartModel.findOneAndUpdate(
@@ -136,14 +137,14 @@ const removeItem = async (req, res) => {
     });
 
     if (!cart) {
-      return res.status(404).send({ status: false, message: "Cart not found" });
+      return res.status(404).send({ status: false, message: CartMessages.NOT_FOUND });
     }
 
     res
       .status(200)
-      .send({ status: true, message: "Item removed from cart", cart });
+      .send({ status: true, message: CartMessages.REMOVED, cart });
   } catch (error) {
-    res.status(500).send({ status: false, message: "Server error", error });
+    res.status(500).send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error });
   }
 };
 

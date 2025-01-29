@@ -43,7 +43,6 @@ const addItemToCart = async (req, res) => {
 
     res.status(200).send({ status: true, cart: updatedCart });
   } catch (error) {
-    console.error("Error in addItemToCart:", error.message);
     res.status(500).send({ status: false, message: "Server error", error });
   }
 };
@@ -63,7 +62,6 @@ const getCart = async (req, res) => {
 
     res.status(200).send({ status: true, cart });
   } catch (error) {
-    console.error("Error in getCart:", error.message);
     res.status(500).send({ status: false, message: "Server error", error });
   }
 };
@@ -113,7 +111,6 @@ const decreaseQuantity = async (req, res) => {
 
     res.status(200).send({ status: true, cart: updatedCart });
   } catch (error) {
-    console.error("Error in decreaseQuantity:", error.message);
     res.status(500).send({ status: false, message: "Server error", error });
   }
 };
@@ -146,7 +143,6 @@ const removeItem = async (req, res) => {
       .status(200)
       .send({ status: true, message: "Item removed from cart", cart });
   } catch (error) {
-    console.error("Error in removeItem:", error.message);
     res.status(500).send({ status: false, message: "Server error", error });
   }
 };

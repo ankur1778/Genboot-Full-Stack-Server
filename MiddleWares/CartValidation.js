@@ -27,7 +27,6 @@ const cartValidation = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error("Error in cartValidation:", error.message);
     res.status(500).send({ status: false, message: "Server error", error });
   }
 };

@@ -45,7 +45,7 @@ router.get("/", verifyToken, async (req, res) => {
       filter.name = name;
     }
     let products = await ProductModel.find(filter)
-      // .select("-_id -countInStock ")
+      .select("-_id -countInStock ")
       .populate("category")
       .limit(limit)
       .skip(offset)
@@ -61,7 +61,6 @@ router.get("/", verifyToken, async (req, res) => {
     res.send(randomProducts);
   } catch (error) {
     res.send({ msg: "Cannot get the products" });
-    console.log(error);
   }
 });
 

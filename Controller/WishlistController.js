@@ -41,7 +41,6 @@ const addItemToWishList = async (req, res) => {
       .status(400)
       .send({ status: false, message: "Item already exists in wishlist" });
   } catch (error) {
-    console.error(error);
     res
       .status(500)
       .send({ status: false, message: "Server error", error: error.message });
@@ -59,7 +58,6 @@ const getWishList = async (req, res) => {
         .status(400)
         .send({ status: false, message: "Invalid user ID" });
     }
-    console.log(userId);
 
     // Find the wishlist and populate the products
     const wishlist = await WishListModel.findOne({ user: userId });
@@ -72,7 +70,6 @@ const getWishList = async (req, res) => {
 
     return res.status(200).send({ status: true, wishlist });
   } catch (error) {
-    console.error(error);
     return res
       .status(500)
       .send({ status: false, message: "Server error", error: error.message });
@@ -124,7 +121,6 @@ const removeItem = async (req, res) => {
       updatedWishList: wishlist,
     });
   } catch (error) {
-    console.error(error);
     return res
       .status(500)
       .send({ status: false, message: "Server error", error: error.message });

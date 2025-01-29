@@ -8,6 +8,7 @@ const ProductRouter = require("./Routes/ProductRouter");
 const CategoryRouter = require("./Routes/CategoriesRouter");
 const OrderRouter = require("./Routes/OrderRouter");
 const CartRouter = require("./Routes/CartRouter");
+const WishlistRouter = require("./Routes/WishListRouter");
 const cors = require("cors");
 
 const port = process.env.port || 3100;
@@ -25,6 +26,7 @@ app.use("/products", ProductRouter);
 app.use("/categories", CategoryRouter);
 app.use("/orders", OrderRouter);
 app.use("/cart", CartRouter);
+app.use("/wishlist", WishlistRouter);
 
 app.listen(port, "0.0.0.0", async () => {
   try {

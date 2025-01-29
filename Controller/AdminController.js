@@ -39,7 +39,6 @@ const adminLogin = async (req, res) => {
       roleId: user.roleId,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({
       message: "Login Unsuccessfullyl",
       success: false,

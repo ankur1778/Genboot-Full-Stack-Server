@@ -36,7 +36,6 @@ const signup = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
     res.status(500).json({
       message: "Internal Server Error",
       success: false,
@@ -71,7 +70,6 @@ const login = async (req, res) => {
       roleId: user.roleId,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({
       message: "Login Unsuccessfully",
       success: false,

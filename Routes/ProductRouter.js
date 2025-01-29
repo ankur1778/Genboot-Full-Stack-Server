@@ -61,7 +61,6 @@ router.get("/", verifyToken, async (req, res) => {
     res.send(randomProducts);
   } catch (error) {
     res.send({ msg: "Cannot get the products" });
-    console.log(error);
   }
 });
 

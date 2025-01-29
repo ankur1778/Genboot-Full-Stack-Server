@@ -35,7 +35,6 @@ router.get("/", verifyToken, async (req, res) => {
     res.send(categories);
   } catch (error) {
     res.send({ msg: "Cannot get the categories" });
-    console.log(error);
   }
 });
 

@@ -1,7 +1,8 @@
 const { OrderMessage } = require("../lib/statusMessage");
+const validateOrder = require("../MiddleWares/validateOrder");
 const { OrderItemModel } = require("../models/Order-Item");
 const { OrderModel } = require("../models/Orders.model");
-const ADMIN = process.env.ROLE_ADMIN;
+const { ProductModel } = require("../models/Product.model");
 
 // Get all orders
 const getAllOrders = async (req, res) => {
@@ -85,7 +86,14 @@ const postOrder = async (req, res) => {
       totalPrice,
       user: userId,
     });
-
+    await Promise.all(
+      req.body.orderItems.map(async (orderItem) => {
+        await ProductModel.updateOne(
+          { _id: orderItem.product },
+          { $inc: { countInStock: -orderItem.quantity } }
+        );
+      })
+    );
     const savedOrder = await order.save();
     res.status(201).json(savedOrder);
   } catch (error) {
@@ -138,10 +146,15 @@ const deleteOrder = async (req, res) => {
         OrderItemModel.findByIdAndDelete(orderItemId)
       )
     );
-
-    res
-      .status(200)
-      .json({ success: true, message: OrderMessage.DELETED });
+    await Promise.all(
+      req.body.orderItems.map(async (orderItem) => {
+        await ProductModel.updateOne(
+          { _id: orderItem.product },
+          { $inc: { countInStock: +orderItem.quantity } }
+        );
+      })
+    );
+    res.status(200).json({ success: true, message: OrderMessage.DELETED });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

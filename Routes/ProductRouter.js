@@ -45,7 +45,6 @@ router.get("/", verifyToken, async (req, res) => {
       filter.name = name;
     }
     let products = await ProductModel.find(filter)
-      .select("-_id -countInStock ")
       .populate("category")
       .limit(limit)
       .skip(offset)

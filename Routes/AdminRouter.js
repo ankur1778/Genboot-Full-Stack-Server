@@ -3,9 +3,10 @@ const express = require("express");
 const router = express.Router();
 const cors = require("cors");
 const adminAuth = require("../middlewares/AdminValidation");
+const userDetails = require("../MiddleWares/jwt_decode");
 
 router.use(cors());
-
+router.use(userDetails)
 // Get all users (Admin only)
 router.get("/users", adminAuth, async (req, res) => {
   try {

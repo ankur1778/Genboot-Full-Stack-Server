@@ -1,8 +1,4 @@
-const { OrderModel } = require("../models/Orders.model");
 const express = require("express");
-const { OrderItemModel } = require("../models/Order-Item");
-const verifyToken = require("../middlewares/verifyToken");
-const validateOrder = require("../MiddleWares/validateOrder");
 const userDetails = require("../MiddleWares/jwt_decode");
 const {
   getAllOrders,

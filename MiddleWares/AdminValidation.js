@@ -10,6 +10,7 @@ const adminAuth = (req, res, next) => {
     const token =
       req.headers.authorization && req.headers.authorization.split(" ")[1];
     const roleId = req.roleId;
+    
     if (!token) {
       return res.status(401).json({ msg: TokenMessage.MISSING_TOKEN });
     }

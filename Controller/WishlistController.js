@@ -1,14 +1,17 @@
 const { isValidObjectId } = require("mongoose");
 const { WishListModel } = require("../models/WishListModel");
 const { WishListItemModel } = require("../models/WishList-Item");
-const { ProductValidation, WishListMessage, UserValidation } = require("../lib/statusMessage");
+const {
+  ProductValidation,
+  WishListMessage,
+  UserValidation,
+  ServerErrorMessage,
+} = require("../lib/statusMessage");
 
 const addItemToWishList = async (req, res) => {
   try {
     const userId = req.userId;
-    let wishlist = await WishListModel.findOne({ user: userId }).populate(
-      "products"
-    );
+    let wishlist = await WishListModel.findOne({ user: userId });
 
     // If no wishlist exists, create a new one
     if (!wishlist) {
@@ -24,27 +27,35 @@ const addItemToWishList = async (req, res) => {
         .send({ status: false, message: ProductValidation.INVALID_PRODUCT });
     }
 
-    // Create a new WishListItemModel for the product
-    const wishListItem = new WishListItemModel({ product });
+    // Check if the product is already in the wishlist
+    const existingWishListItem = await WishListItemModel.findOne({ product });
 
-    // Add product to wishlist if it doesn't already exist
     if (
-      !wishlist.products.some((item) => item.product.toString() === product)
+      existingWishListItem &&
+      wishlist.products.includes(existingWishListItem._id)
     ) {
-      wishlist.products.push(wishListItem);
-      await wishlist.save();
       return res
-        .status(200)
-        .send({ status: true, message: WishListMessage.ADDED, wishlist });
+        .status(400)
+        .send({ status: false, message: WishListMessage.EXIST });
     }
 
+    // Create and save a new WishListItemModel for the product
+    const wishListItem = new WishListItemModel({ product });
+    await wishListItem.save();
+
+    // Add the new wishlist item ObjectId to the wishlist
+    wishlist.products.push(wishListItem._id);
+    await wishlist.save();
+
     return res
-      .status(400)
-      .send({ status: false, message: WishListMessage.EXIST });
+      .status(200)
+      .send({ status: true, message: WishListMessage.ADDED, wishlist });
   } catch (error) {
-    res
-      .status(500)
-      .send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error: error.message });
+    res.status(500).send({
+      status: false,
+      message: ServerErrorMessage.SERVER_ERROR,
+      error: error.message,
+    });
   }
 };
 
@@ -60,8 +71,14 @@ const getWishList = async (req, res) => {
         .send({ status: false, message: UserValidation.INVALID_USERID });
     }
 
-    // Find the wishlist and populate the products
-    const wishlist = await WishListModel.findOne({ user: userId });
+    const wishlist = await WishListModel.findOne({ user: userId }).populate({
+      path: "products",
+      model: "WishListItemModel",
+      populate: {
+        path: "product",
+        select: "name price category image description",
+      },
+    });
 
     if (!wishlist) {
       return res
@@ -69,11 +86,13 @@ const getWishList = async (req, res) => {
         .send({ status: false, message: WishListMessage.NOT_FOUND });
     }
 
-    return res.status(200).send({ status: true, wishlist });
+    return res.status(200).send(wishlist);
   } catch (error) {
-    return res
-      .status(500)
-      .send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error: error.message });
+    return res.status(500).send({
+      status: false,
+      message: ServerErrorMessage.SERVER_ERROR,
+      error: error.message,
+    });
   }
 };
 
@@ -83,7 +102,6 @@ const removeItem = async (req, res) => {
     const userId = req.userId;
     const { product } = req.body;
 
-    // Validate userId and productId
     if (!userId || !isValidObjectId(userId)) {
       return res
         .status(400)
@@ -95,36 +113,41 @@ const removeItem = async (req, res) => {
         .send({ status: false, message: ProductValidation.INVALID_PRODUCT });
     }
 
-    // Find the user's wishlist
-    const wishlist = await WishListModel.findOne({ user: userId });
-    if (!wishlist) {
+    // Find and update the wishlist in one query
+    const updatedWishlist = await WishListModel.findOneAndUpdate(
+      { user: userId },
+      { $pull: { products: product } },
+      { new: true }
+    ).populate("products");
+
+    if (!updatedWishlist) {
       return res
         .status(404)
         .send({ status: false, message: WishListMessage.NOT_FOUND });
     }
 
-    // Remove the product from the wishlist
-    const productIndex = wishlist.products.findIndex(
-      (item) => item.toString() === product
-    );
-    if (productIndex === -1) {
+    // Remove item from WishListItemModel
+    const wishlistItem = await WishListItemModel.findOneAndDelete({
+      product: product,
+    });
+
+    if (!wishlistItem) {
       return res
         .status(404)
-        .send({ status: false, message: WishListMessage.EMPTY });
+        .send({ status: false, message: "Product not found in Wishlist" });
     }
-
-    wishlist.products.splice(productIndex, 1); // Remove product
-    await wishlist.save();
 
     return res.status(200).send({
       status: true,
       message: WishListMessage.REMOVED,
-      updatedWishList: wishlist,
+      updatedWishList: updatedWishlist,
     });
   } catch (error) {
-    return res
-      .status(500)
-      .send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error: error.message });
+    return res.status(500).send({
+      status: false,
+      message: ServerErrorMessage.SERVER_ERROR,
+      error: error.message,
+    });
   }
 };
 

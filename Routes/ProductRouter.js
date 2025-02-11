@@ -32,34 +32,44 @@ const uploadOptions = multer({ storage: storage });
 
 //Getting the products
 router.get("/", verifyToken, async (req, res) => {
-  const limit = Number(req.query.limit);
-  const page = Number(req.query.page);
-  let offset = (page - 1) * limit;
+  const limit = Number(req.query.limit) || 20;
+  const page = Number(req.query.page) || 1;
+  const offset = (page - 1) * limit;
+
   try {
     let filter = {};
     let { categories, name, sort } = req.query;
+
     if (categories) {
       filter.category = categories;
     }
+
     if (name) {
-      filter.name = name;
+      filter.name = { $regex: name, $options: "i" };
     }
+
+    let sortOptions = {};
+    if (sort) {
+      const [field, order] = sort.split(":");
+      if (field === "category.name") {
+        sortOptions = { "category.name": order === "desc" ? -1 : 1 };
+      } else {
+        sortOptions[field] = order === "desc" ? -1 : 1;
+      }
+    }
+
+    const totalProducts = await ProductModel.countDocuments(filter);
     let products = await ProductModel.find(filter)
       .populate("category")
       .limit(limit)
       .skip(offset)
-      .sort(sort);
-    const shuffle = (array) => {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    };
-    const randomProducts = shuffle(products);
-    res.send(randomProducts);
+      .sort(sortOptions);
+    res.send({
+      products,
+      totalProducts,
+    });
   } catch (error) {
-    res.send({ msg: "Cannot get the products" });
+    res.status(500).send({ msg: "Cannot get the products" });
   }
 });
 

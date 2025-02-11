@@ -7,13 +7,19 @@ const { ProductModel } = require("../models/Product.model");
 // Get all orders
 const getAllOrders = async (req, res) => {
   try {
+    const limit = Number(req.query.limit) || 20;
+    const page = Number(req.query.page) || 1;
+    let offset = (page - 1) * limit;
+    const totalOrders = await OrderModel.countDocuments();
     const orderList = await OrderModel.find()
       .populate("user", "name")
-      .sort({ dateOrdered: -1 });
+      .sort({ dateOrdered: -1 })
+      .limit(limit)
+      .skip(offset);
 
     if (!orderList) return res.status(500).json({ success: false });
 
-    res.status(200).json(orderList);
+    res.status(200).json({ orderList, totalOrders });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -102,32 +108,55 @@ const postOrder = async (req, res) => {
 };
 
 //Update Status of order
+const ALLOWED_STATUSES = ["Pending", "Shipped", "Delivered", "Cancelled"];
+
 const updateStatus = async (req, res) => {
-  const { status } = req.body;
-
-  if (!["Pending", "Shipped", "Delivered", "Cancelled"].includes(status)) {
-    return res
-      .status(400)
-      .json({ success: false, message: OrderMessage.INVALID_STATUS });
-  }
-
   try {
+    const { status } = req.body;
+    const { id } = req.params;
+
+    // Validate status
+    if (!ALLOWED_STATUSES.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: OrderMessage.INVALID_STATUS,
+      });
+    }
+
+    // Validate ID format before querying DB
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Order ID format",
+      });
+    }
+
+    // Update order status
     const order = await OrderModel.findByIdAndUpdate(
-      req.params.id,
+      id,
       { status },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
-    if (!order)
-      return res
-        .status(404)
-        .json({ success: false, message: OrderMessage.NOT_FOUND });
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: OrderMessage.NOT_FOUND,
+      });
+    }
 
-    res
-      .status(200)
-      .json({ success: true, message: OrderMessage.STATUS_UPDATED, order });
+    return res.status(200).json({
+      success: true,
+      message: OrderMessage.STATUS_UPDATED,
+      order,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error("Error updating order status:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
   }
 };
 

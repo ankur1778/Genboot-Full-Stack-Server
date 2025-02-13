@@ -21,7 +21,7 @@ const userDetails = (req, res, next) => {
     }
 
     req.userId = decoded.userId;
-    req.roleId = decoded.roleId;
+    req.roleId = decoded.roleId;    
     next();
   });
 };

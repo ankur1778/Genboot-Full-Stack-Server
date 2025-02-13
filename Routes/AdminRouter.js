@@ -4,7 +4,10 @@ const router = express.Router();
 const cors = require("cors");
 const adminAuth = require("../middlewares/AdminValidation");
 const userDetails = require("../MiddleWares/jwt_decode");
-const { AdminMessage, ServerErrorMessage } = require("../lib/statusMessage");
+const {
+  ServerErrorMessage,
+  AuthValidation,
+} = require("../lib/statusMessage");
 
 router.use(cors());
 router.use(userDetails);
@@ -49,11 +52,11 @@ router.put("/users/update/:id", adminAuth, async (req, res) => {
 
   try {
     await UserModel.findByIdAndUpdate(id, payload);
-    res.status(200).send({ msg: "User updated successfully" });
+    res.status(200).send({ msg: AuthValidation.UPDATED });
   } catch (error) {
     res
       .status(500)
-      .send({ msg: "Cannot update the user", error: error.message });
+      .send({ msg: ServerErrorMessage.SERVER_ERROR, error: error.message });
   }
 });
 
@@ -63,11 +66,11 @@ router.delete("/users/delete/:id", adminAuth, async (req, res) => {
 
   try {
     await UserModel.findByIdAndDelete(id);
-    res.status(200).send({ msg: "User deleted successfully" });
+    res.status(200).send({ msg: AuthValidation.DELETED });
   } catch (error) {
     res
       .status(500)
-      .send({ msg: "Cannot delete the user", error: error.message });
+      .send({ msg: ServerErrorMessage.SERVER_ERROR, error: error.message });
   }
 });
 

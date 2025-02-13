@@ -25,7 +25,7 @@ const adminAuth = (req, res, next) => {
           .status(401)
           .json({ msg: TokenMessage.INVALID, error: err.message });
       }
-      req.user = decoded;
+      req.user = decoded;            
       next();
     });
   } catch (error) {

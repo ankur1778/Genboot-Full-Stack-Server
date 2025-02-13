@@ -6,7 +6,7 @@ require("dotenv");
 
 const signup = async (req, res) => {
   try {
-    const { name, email, password, phNo, roleId } = req.body;
+    const { name, email, password, phNo, roleId, disabled } = req.body;
     const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
       return res.status(409).json({
@@ -21,6 +21,7 @@ const signup = async (req, res) => {
       password: hashedPassword,
       phNo,
       roleId,
+      disabled,
     });
 
     await newUser.save();
@@ -34,6 +35,7 @@ const signup = async (req, res) => {
         email: newUser.email,
         phNo: newUser.phNo,
         roleId: newUser.roleId,
+        disabled: newUser.disabled,
       },
     });
   } catch (err) {

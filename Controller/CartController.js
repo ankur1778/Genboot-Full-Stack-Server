@@ -158,7 +158,7 @@ const increaseQuantity = async (req, res) => {
         .send({ status: false, message: CartMessages.EMPTY });
     }
 
-    if (cartItem.quantity > 1) {
+    if (cartItem) {
       cartItem.quantity += 1;
       await cartItem.save();
     }
@@ -185,7 +185,7 @@ const removeItem = async (req, res) => {
     if (!productId || !isValidObjectId(productId)) {
       return res.status(400).send({
         status: false,
-        message: "Invalid Product ID",
+        message: ProductValidation.INVALID_PRODUCT,
       });
     }
 
@@ -195,7 +195,7 @@ const removeItem = async (req, res) => {
     if (!cart) {
       return res.status(404).send({
         status: false,
-        message: "Cart not found",
+        message: CartMessages.NOT_FOUND,
       });
     }
 
@@ -207,7 +207,7 @@ const removeItem = async (req, res) => {
     if (!cartItem) {
       return res.status(404).send({
         status: false,
-        message: "Product not found in cart",
+        message: ProductValidation.INVALID_PRODUCT,
       });
     }
 
@@ -220,14 +220,14 @@ const removeItem = async (req, res) => {
 
     res.status(200).send({
       status: true,
-      message: "Product removed from cart",
+      message: ProductValidation.NOT_FOUND,
       cart,
     });
   } catch (error) {
     console.error(error);
     res.status(500).send({
       status: false,
-      message: "Internal Server Error",
+      message: ServerErrorMessage.SERVER_ERROR,
       error,
     });
   }

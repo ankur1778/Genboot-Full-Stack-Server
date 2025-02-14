@@ -5,7 +5,7 @@ const { UserValidation, ProductValidation, ServerErrorMessage } = require("../li
 const cartValidation = async (req, res, next) => {
   try {
     const userId = req.userId;
-    const { product } = req.body;
+    const { productId } = req.body;
 
     if (!userId || !isValidObjectId(userId)) {
       return res
@@ -20,7 +20,7 @@ const cartValidation = async (req, res, next) => {
         .send({ status: false, message: UserValidation.NOT_FOUND });
     }
 
-    if (!product || !isValidObjectId(product)) {
+    if (!productId || !isValidObjectId(productId)) {
       return res
         .status(400)
         .send({ status: false, message: ProductValidation.INVALID_PRODUCT });

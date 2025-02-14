@@ -1,7 +1,11 @@
 const { isValidObjectId } = require("mongoose");
 const { CartModel } = require("../models/CartModel");
 const { CartItemModel } = require("../models/Cart-Item");
-const { ProductValidation, CartMessages } = require("../lib/statusMessage");
+const {
+  ProductValidation,
+  CartMessages,
+  ServerErrorMessage,
+} = require("../lib/statusMessage");
 
 const addItemToCart = async (req, res) => {
   try {
@@ -44,7 +48,9 @@ const addItemToCart = async (req, res) => {
 
     res.status(200).send({ status: true, cart: updatedCart });
   } catch (error) {
-    res.status(500).send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error });
+    res
+      .status(500)
+      .send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error });
   }
 };
 
@@ -54,16 +60,19 @@ const getCart = async (req, res) => {
 
     const cart = await CartModel.findOne({ user: userId }).populate({
       path: "products",
-      populate: { path: "product", select: "name price category" },
+      populate: { path: "product", select: "name price category image" },
     });
 
     if (!cart) {
-      return res.status(404).send({ status: false, message: CartMessages.NOT_FOUND });
+      return res
+        .status(404)
+        .send({ status: false, message: CartMessages.NOT_FOUND });
     }
-
-    res.status(200).send({ status: true, cart });
+    res.status(200).send(cart);
   } catch (error) {
-    res.status(500).send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error });
+    res
+      .status(500)
+      .send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error });
   }
 };
 
@@ -81,7 +90,9 @@ const decreaseQuantity = async (req, res) => {
     const cart = await CartModel.findOne({ user: userId }).populate("products");
 
     if (!cart) {
-      return res.status(404).send({ status: false, message: CartMessages.NOT_FOUND });
+      return res
+        .status(404)
+        .send({ status: false, message: CartMessages.NOT_FOUND });
     }
 
     const cartItem = cart.products.find(
@@ -112,11 +123,13 @@ const decreaseQuantity = async (req, res) => {
 
     res.status(200).send({ status: true, cart: updatedCart });
   } catch (error) {
-    res.status(500).send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error });
+    res
+      .status(500)
+      .send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error });
   }
 };
 
-const removeItem = async (req, res) => {
+const increaseQuantity = async (req, res) => {
   try {
     const userId = req.userId;
     const { productId } = req.body;
@@ -127,25 +140,103 @@ const removeItem = async (req, res) => {
         .send({ status: false, message: ProductValidation.INVALID_PRODUCT });
     }
 
-    const cart = await CartModel.findOneAndUpdate(
-      { user: userId },
-      { $pull: { products: { product: productId } } },
-      { new: true }
-    ).populate({
+    const cart = await CartModel.findOne({ user: userId }).populate("products");
+
+    if (!cart) {
+      return res
+        .status(404)
+        .send({ status: false, message: CartMessages.NOT_FOUND });
+    }
+
+    const cartItem = cart.products.find(
+      (item) => item.product._id.toString() === productId
+    );
+
+    if (!cartItem) {
+      return res
+        .status(400)
+        .send({ status: false, message: CartMessages.EMPTY });
+    }
+
+    if (cartItem.quantity > 1) {
+      cartItem.quantity += 1;
+      await cartItem.save();
+    }
+
+    await cart.save();
+    const updatedCart = await CartModel.findById(cart._id).populate({
       path: "products",
       populate: { path: "product", select: "name price category" },
     });
 
-    if (!cart) {
-      return res.status(404).send({ status: false, message: CartMessages.NOT_FOUND });
-    }
-
-    res
-      .status(200)
-      .send({ status: true, message: CartMessages.REMOVED, cart });
+    res.status(200).send({ status: true, cart: updatedCart });
   } catch (error) {
-    res.status(500).send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error });
+    res
+      .status(500)
+      .send({ status: false, message: ServerErrorMessage.SERVER_ERROR, error });
   }
 };
 
-module.exports = { addItemToCart, getCart, decreaseQuantity, removeItem };
+const removeItem = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { productId } = req.body;
+
+    if (!productId || !isValidObjectId(productId)) {
+      return res.status(400).send({
+        status: false,
+        message: "Invalid Product ID",
+      });
+    }
+
+    // Find the cart first
+    const cart = await CartModel.findOne({ user: userId }).populate("products");
+
+    if (!cart) {
+      return res.status(404).send({
+        status: false,
+        message: "Cart not found",
+      });
+    }
+
+    // Find the CartItem that contains this productId
+    const cartItem = await CartItemModel.findOneAndDelete({
+      product: productId,
+    });
+
+    if (!cartItem) {
+      return res.status(404).send({
+        status: false,
+        message: "Product not found in cart",
+      });
+    }
+
+    // Remove the reference from the cart
+    cart.products = cart.products.filter(
+      (item) => item._id.toString() !== cartItem._id.toString()
+    );
+
+    await cart.save();
+
+    res.status(200).send({
+      status: true,
+      message: "Product removed from cart",
+      cart,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      status: false,
+      message: "Internal Server Error",
+      error,
+    });
+  }
+};
+
+module.exports = {
+  addItemToCart,
+  getCart,
+  decreaseQuantity,
+  increaseQuantity,
+  removeItem,
+};

@@ -4,10 +4,7 @@ const router = express.Router();
 const cors = require("cors");
 const adminAuth = require("../middlewares/AdminValidation");
 const userDetails = require("../MiddleWares/jwt_decode");
-const {
-  ServerErrorMessage,
-  AuthValidation,
-} = require("../lib/statusMessage");
+const { ServerErrorMessage, AuthValidation } = require("../lib/statusMessage");
 
 router.use(cors());
 router.use(userDetails);
@@ -46,17 +43,33 @@ router.get("/users", adminAuth, async (req, res) => {
 });
 
 // Update a user
+// ✅ Update a user (Allows enabling/disabling user)
 router.put("/users/update/:id", adminAuth, async (req, res) => {
   const { id } = req.params;
-  const payload = req.body;
+  const { disabled, ...payload } = req.body; // Extract `disabled` separately
 
   try {
-    await UserModel.findByIdAndUpdate(id, payload);
-    res.status(200).send({ msg: AuthValidation.UPDATED });
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      id,
+      { ...payload }, 
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res
+        .status(404)
+        .json({ msg: AuthValidation.INVALID, success: false });
+    }
+
+    const message = disabled
+      ? "User has been disabled successfully."
+      : "User details updated successfully.";
+
+    res.status(200).json({ msg: message, success: true, updatedUser });
   } catch (error) {
     res
       .status(500)
-      .send({ msg: ServerErrorMessage.SERVER_ERROR, error: error.message });
+      .json({ msg: ServerErrorMessage.SERVER_ERROR, error: error.message });
   }
 });
 

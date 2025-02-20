@@ -6,6 +6,11 @@ const { CategoryModel } = require("../models/Category.model");
 const multer = require("multer");
 const verifyToken = require("../middlewares/verifyToken");
 const adminAuth = require("../middlewares/AdminValidation");
+const {
+  ProductValidation,
+  ServerErrorMessage,
+  CategoryMessages,
+} = require("../lib/statusMessage");
 
 const FILE_TYPE_MAP = {
   "image/png": "png",
@@ -70,18 +75,18 @@ router.get("/", verifyToken, async (req, res) => {
       totalProducts,
     });
   } catch (error) {
-    res.status(500).send({ msg: "Cannot get the products" });
+    res.status(500).send({ msg: ServerErrorMessage.SERVER_ERROR });
   }
 });
 
 router.get("/:id", verifyToken, async (req, res) => {
   try {
-    const product = await ProductModel.findById(req.params.id)
-      .populate("category")
-      .select(" -_id -countInStock");
+    const product = await ProductModel.findById(req.params.id).populate(
+      "category"
+    );
     if (!product) {
       return res.status(404).json({
-        message: "The product with the given ID is not found",
+        message: ProductValidation.INVALID_PRODUCT,
         success: false,
       });
     }
@@ -89,7 +94,7 @@ router.get("/:id", verifyToken, async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .send({ message: "An error occurred", error: error.message });
+      .send({ message: ServerErrorMessage.SERVER_ERROR, error: error.message });
   }
 });
 
@@ -107,7 +112,7 @@ router.post("/", adminAuth, uploadOptions.single("image"), async (req, res) => {
   try {
     const foundCategory = await CategoryModel.findById(category);
     if (!foundCategory) {
-      return res.status(400).json({ message: "Invalid Category" });
+      return res.status(400).json({ message: CategoryMessages.NOT_FOUND });
     }
 
     const file = req.file;
@@ -129,24 +134,24 @@ router.post("/", adminAuth, uploadOptions.single("image"), async (req, res) => {
     const savedProduct = await newProduct.save();
 
     res.status(201).json({
-      message: "Product created successfully",
+      message: ProductValidation.CREATED,
       product: savedProduct,
     });
   } catch (error) {
     res
       .status(500)
-      .json({ message: "An error occurred", error: error.message });
+      .json({ message: ServerErrorMessage.SERVER_ERROR, error: error.message });
   }
 });
 
-router.put("/:id",  async (req, res) => {
+router.put("/:id", async (req, res) => {
   const { id } = req.params;
   const payload = req.body;
   try {
     const category = await CategoryModel.findById(req.body.category);
-    if (!category) res.status(400).send("Invalid Category");
+    if (!category) res.status(400).send(CategoryMessages.NOT_FOUND);
     await ProductModel.findByIdAndUpdate(id, payload);
-    res.status(200).json({ message: "Updated the product", success: true });
+    res.status(200).json({ message: ProductValidation.UPDATED, success: true });
   } catch (err) {
     res.status(404).send({ success: false, error: err.message });
   }
@@ -156,7 +161,7 @@ router.delete("/:id", adminAuth, async (req, res) => {
   const ID = req.params.id;
   try {
     await ProductModel.findByIdAndDelete({ _id: ID });
-    res.status(200).json({ message: "Deleted the product", success: true });
+    res.status(200).json({ message: ProductValidation.DELETED, success: true });
   } catch (err) {
     res.status(404).send({ success: false, error: err.message });
   }

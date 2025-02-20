@@ -1,5 +1,6 @@
 const { OrderMessage, ServerErrorMessage } = require("../lib/statusMessage");
 const validateOrder = require("../MiddleWares/validateOrder");
+const { CartModel } = require("../models/CartModel");
 const { OrderItemModel } = require("../models/Order-Item");
 const { OrderModel } = require("../models/Orders.model");
 const { ProductModel } = require("../models/Product.model");
@@ -100,6 +101,11 @@ const postOrder = async (req, res) => {
         );
       })
     );
+
+    const userCart = await CartModel.findOne({ user: userId });
+    if (userCart) {
+      await CartModel.deleteOne({ _id: userCart._id });
+    }
     const savedOrder = await order.save();
     res.status(201).json(savedOrder);
   } catch (error) {

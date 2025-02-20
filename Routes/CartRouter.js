@@ -6,6 +6,7 @@ const {
   decreaseQuantity,
   removeItem,
   increaseQuantity,
+  clearCart,
 } = require("../Controller/CartController");
 const userDetails = require("../MiddleWares/jwt_decode");
 const cartValidation = require("../MiddleWares/CartValidation");
@@ -19,5 +20,6 @@ router.get("/get-cart", getCart);
 router.put("/decrease-quantity", cartValidation, decreaseQuantity);
 router.put("/increase-quantity", cartValidation, increaseQuantity);
 router.delete("/remove-item", cartValidation, removeItem);
+router.delete("/clear-cart", clearCart);
 
 module.exports = router;

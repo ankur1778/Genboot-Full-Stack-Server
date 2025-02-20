@@ -224,7 +224,36 @@ const removeItem = async (req, res) => {
       cart,
     });
   } catch (error) {
-    console.error(error);
+    res.status(500).send({
+      status: false,
+      message: ServerErrorMessage.SERVER_ERROR,
+      error,
+    });
+  }
+};
+
+const clearCart = async (req, res) => {
+  const userId = req.userId;
+  try {
+    const cart = await CartModel.findOne({ user: userId }).populate("products");
+    if (!cart) {
+      return res.status(404).send({
+        status: false,
+        message: CartMessages.NOT_FOUND,
+      });
+    }
+
+    const cartClear = async (id) =>
+      CartModel.deleteOne({
+        _id: id,
+      });
+    await cartClear(`${cart._id.toString()}`);
+
+    res.status(200).json({
+      success: true,
+      data: cart,
+    });
+  } catch (error) {
     res.status(500).send({
       status: false,
       message: ServerErrorMessage.SERVER_ERROR,
@@ -239,4 +268,5 @@ module.exports = {
   decreaseQuantity,
   increaseQuantity,
   removeItem,
+  clearCart,
 };

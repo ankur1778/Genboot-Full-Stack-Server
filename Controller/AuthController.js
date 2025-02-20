@@ -9,6 +9,12 @@ const signup = async (req, res) => {
     const { name, email, password, phNo, roleId, disabled } = req.body;
     const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
+      if (existingUser.disabled) {
+        return res.status(403).json({
+          message: AuthValidation.DISABLED,
+          success: false,
+        });
+      }
       return res.status(409).json({
         message: AuthValidation.EXIST,
         success: false,
@@ -54,6 +60,13 @@ const login = async (req, res) => {
       return res
         .status(400)
         .json({ message: AuthValidation.WRONG_CREDS, success: false });
+    }
+
+    if (user.disabled) {
+      return res.status(403).json({
+        message: AuthValidation.DISABLED,
+        success: false,
+      });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {

@@ -1,4 +1,4 @@
-const { OrderMessage } = require("../lib/statusMessage");
+const { OrderMessage, ServerErrorMessage } = require("../lib/statusMessage");
 const validateOrder = require("../MiddleWares/validateOrder");
 const { OrderItemModel } = require("../models/Order-Item");
 const { OrderModel } = require("../models/Orders.model");
@@ -151,16 +151,15 @@ const updateStatus = async (req, res) => {
       order,
     });
   } catch (error) {
-    console.error("Error updating order status:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error",
+      message: ServerErrorMessage.SERVER_ERROR,
       error: error.message,
     });
   }
 };
 
-// Deletae an order
+// Delete an order
 const deleteOrder = async (req, res) => {
   try {
     const order = await OrderModel.findByIdAndDelete(req.params.id);

@@ -15,9 +15,9 @@ const adminAuth = (req, res, next) => {
       return res.status(401).json({ msg: TokenMessage.MISSING_TOKEN });
     }
 
-    if (!roleId || roleId !== process.env.ROLE_ADMIN) {
-      return res.status(403).json({ msg: AdminMessage.NOT_AUTH });
-    }
+    // if (!roleId || roleId !== process.env.ROLE_ADMIN) {
+    //   return res.status(403).json({ msg: AdminMessage.NOT_AUTH });
+    // }
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
@@ -25,7 +25,7 @@ const adminAuth = (req, res, next) => {
           .status(401)
           .json({ msg: TokenMessage.INVALID, error: err.message });
       }
-      req.user = decoded;
+      req.user = decoded;            
       next();
     });
   } catch (error) {

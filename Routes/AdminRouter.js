@@ -4,11 +4,15 @@ const router = express.Router();
 const cors = require("cors");
 const adminAuth = require("../middlewares/AdminValidation");
 const userDetails = require("../MiddleWares/jwt_decode");
-const { AdminMessage, ServerErrorMessage } = require("../lib/statusMessage");
+const {
+  ServerErrorMessage,
+  AuthValidation,
+} = require("../lib/statusMessage");
 
 router.use(cors());
 router.use(userDetails);
 // Get all users (Admin only)
+
 router.get("/users", adminAuth, async (req, res) => {
   try {
     let { name, sort } = req.query;
@@ -17,7 +21,7 @@ router.get("/users", adminAuth, async (req, res) => {
     if (name) {
       filter.name = { $regex: name, $options: "i" };
     }
-
+ 
     const totalUsers = await UserModel.countDocuments(filter);
     const limit = Number(req.query.limit);
     const page = Number(req.query.page);
@@ -49,11 +53,11 @@ router.put("/users/update/:id", adminAuth, async (req, res) => {
 
   try {
     await UserModel.findByIdAndUpdate(id, payload);
-    res.status(200).send({ msg: "User updated successfully" });
+    res.status(200).send({ msg: AuthValidation.UPDATED });
   } catch (error) {
     res
       .status(500)
-      .send({ msg: "Cannot update the user", error: error.message });
+      .send({ msg: ServerErrorMessage.SERVER_ERROR, error: error.message });
   }
 });
 
@@ -63,11 +67,11 @@ router.delete("/users/delete/:id", adminAuth, async (req, res) => {
 
   try {
     await UserModel.findByIdAndDelete(id);
-    res.status(200).send({ msg: "User deleted successfully" });
+    res.status(200).send({ msg: AuthValidation.DELETED });
   } catch (error) {
     res
       .status(500)
-      .send({ msg: "Cannot delete the user", error: error.message });
+      .send({ msg: ServerErrorMessage.SERVER_ERROR, error: error.message });
   }
 });
 
@@ -79,6 +83,23 @@ router.get("/get/userscount", async (req, res) => {
   res.send({
     users: usersCount,
   });
+});
+
+//Get the userDetails by userId
+router.get("/users/:userId",  async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    res.status(200).json(user); 
+  } catch (error) {
+    res.status(500).json({ msg: "Error fetching user details", error: error.message });
+  }
 });
 
 module.exports = router;

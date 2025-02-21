@@ -51,6 +51,16 @@ const orderSchema = mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  paymentStatus: {
+    type: String,
+    enum: ["Pending", "Paid", "Failed"],
+    default: "Pending",
+  },
+  paymentMethod: {
+    type: String,
+    enum: ["CreditCard", "DebitCard", "BankTransfer", "CashOnDelivery"],  
+    default: "CashOnDelivery",
+  },
 });
 
 orderSchema.virtual("id").get(function () {

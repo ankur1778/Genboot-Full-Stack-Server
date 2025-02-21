@@ -2,9 +2,10 @@ const { ProductModel } = require("../models/Product.model");
 const express = require("express");
 const router = express.Router();
 const { CategoryModel } = require("../models/Category.model");
-const adminAuth = require("../middlewares/AdminValidation");
+
 const multer = require("multer");
 const verifyToken = require("../middlewares/verifyToken");
+const adminAuth = require("../middlewares/AdminValidation");
 
 const FILE_TYPE_MAP = {
   "image/png": "png",
@@ -138,13 +139,13 @@ router.post("/", adminAuth, uploadOptions.single("image"), async (req, res) => {
   }
 });
 
-router.patch("/:id", adminAuth, async (req, res) => {
-  const ID = req.params.id;
+router.put("/:id",  async (req, res) => {
+  const { id } = req.params;
   const payload = req.body;
   try {
     const category = await CategoryModel.findById(req.body.category);
     if (!category) res.status(400).send("Invalid Category");
-    await ProductModel.findByIdAndUpdate({ _id: ID }, payload);
+    await ProductModel.findByIdAndUpdate(id, payload);
     res.status(200).json({ message: "Updated the product", success: true });
   } catch (err) {
     res.status(404).send({ success: false, error: err.message });

@@ -25,10 +25,7 @@ const adminAuth = (req, res, next) => {
           .status(401)
           .json({ msg: TokenMessage.INVALID, error: err.message });
       }
-      if(decoded.roleId !== process.env.ROLE_ADMIN){
-        return res.status(403).json({msg: AdminMessage.NOT_AUTH});
-      }
-      req.user = decoded;
+      req.user = decoded;            
       next();
     });
   } catch (error) {

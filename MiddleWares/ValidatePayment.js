@@ -1,14 +1,14 @@
 const Joi = require("joi");
 
-const validatePayment = (data) =>{
+const validatePayment = (data) => {
     const schema = Joi.object({
-        amount: Joi.number().positive().required(),
-        currency: Joi.string().valid("rupees").required(),
-        status: Joi.string().valid("succeeded", "failed").required(),
-        transaction_id: Joi.string().required(),
+        card_number: Joi.string().optional(),
+        UPI_id: Joi.string().optional(),
         order_id: Joi.string().required(),
-    })
-    return schema.validate(data)
-}
+        user_id: Joi.string().required(),
+        amount: Joi.number().required(),
+    });
+    return schema.validate(data);
+};
 
 module.exports = validatePayment;
